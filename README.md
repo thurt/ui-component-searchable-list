@@ -1,0 +1,2 @@
+- Uses CSS styles from [Pure](https://github.com/yahoo/pure)
+- Demo link: https://rawgit.com/thurt/ui-component-searchable-list/master/index.html

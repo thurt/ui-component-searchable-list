@@ -1,0 +1,129 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <title>Accounts List Demo</title>
+
+  <link rel="stylesheet" href="base-min.css">
+  <link rel="stylesheet" href="tables-min.css">
+  <link rel="stylesheet" href="buttons-min.css">
+  <link rel="stylesheet" href="forms-min.css">
+  <link rel="stylesheet" href="grids-min.css">
+  <style type="text/css">
+    #layout {
+
+    }
+    #top-bar {
+
+    }
+
+    #main {
+
+    }
+
+    #main table, tbody, tr, td {
+      width: inherit;
+    }
+
+    #main tr {
+      display: inherit;
+    }
+
+  </style>
+</head>
+<body>
+  <div id="layout" class="pure-g">
+    <div id="top-bar" class="pure-form pure-u-1">
+      <button id="create-item" class="pure-button">Create</button>
+      <input type="text" style="float:right" id="search-input" placeholder="Search" class="pure-input">
+    </div>
+    <div id="main" class="pure-u-1">
+      <table id="list" class="pure-table pure-table-horizontal">
+      </table>
+    </div>
+  </div>
+
+  <template id="list-item">
+    <tr>
+      <td data-name="account"></td>
+      <td><button class="pure-button">Info</button></td>
+      <td><button class="pure-button">Jobs</button></td>
+    </tr>
+  </template>
+
+  <script>
+    var search = document.getElementById('search-input')
+    var list = document.getElementById('list')
+
+    var list_items = []
+
+    var sample_data = [
+      { account: 'E' },
+      { account: 'C' },
+      { account: 'D' },
+      { account: 'A' },
+      { account: 'B' },
+    ]
+
+    var tbody = document.createElement('tbody')
+    var _item = document.getElementById('list-item')
+    var _account = _item.content.querySelector('[data-name=account]')
+
+    sample_data.forEach(item => createItem(item))
+    sortList()
+
+    function createItem(item) {
+      var new_row
+
+      list_items.push(item)
+      _account.textContent = item.account
+      new_row = document.importNode(_item.content, true)
+
+      tbody.insertBefore(new_row, tbody.firstElementChild)
+
+      item.element = tbody.firstElementChild
+      item.style = item.element.style
+    }
+
+    function sortList() { // Sorts z -> a
+      list_items.sort((a, b) => {
+        var comp = b.account.localeCompare(a.account)
+
+        if (comp > 0) tbody.insertBefore(a.element, b.element)
+
+        return comp
+      })
+    }
+
+    list.appendChild(tbody)
+
+    search.addEventListener('input', (e) => {
+      e.stopPropagation()
+      var val = e.target.value.toLocaleLowerCase()
+
+      if (!val) {
+        list_items.forEach(item => item.style.display = 'inherit')
+        return
+      }
+
+      list_items.forEach(item => {
+        if (~item.account.toLocaleLowerCase().indexOf(val)) {
+          item.style.display = 'inherit'
+        } else {
+          item.style.display = 'none'
+        }
+      })
+    })
+
+    document.getElementById('create-item').addEventListener('click', (e) => {
+      e.preventDefault()
+      e.stopPropagation()
+      createItem({ account: '<New Account>' })
+    })
+  </script>
+</body>
+
+</html>
