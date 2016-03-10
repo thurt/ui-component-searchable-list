@@ -5,23 +5,15 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-  <title>Accounts List Demo</title>
+  <title>List Demo</title>
 
   <link rel="stylesheet" href="base-min.css">
   <link rel="stylesheet" href="tables-min.css">
   <link rel="stylesheet" href="buttons-min.css">
   <link rel="stylesheet" href="forms-min.css">
-  <link rel="stylesheet" href="grids-min.css">
   <style type="text/css">
-    #layout {
-
-    }
-    #top-bar {
-
-    }
-
     #main {
-
+      width: 100%;
     }
 
     #main table, tbody, tr, td {
@@ -32,21 +24,30 @@
       display: inherit;
     }
 
+    .grid {
+      display: flex;
+      flex-flow: column;
+    }
+
+    #search {
+      float: right;
+    }
+
   </style>
 </head>
 <body>
-  <div id="layout" class="pure-g">
-    <div id="top-bar" class="pure-form pure-u-1">
+  <div id="layout" class="grid">
+    <div id="top-bar" class="pure-form">
       <button id="create-item" class="pure-button">Create</button>
-      <input type="text" style="float:right" id="search-input" placeholder="Search" class="pure-input">
+      <input type="text" id="search" placeholder="Search" class="pure-input">
     </div>
-    <div id="main" class="pure-u-1">
+    <div id="main">
       <table id="list" class="pure-table pure-table-horizontal">
       </table>
     </div>
   </div>
 
-  <template id="list-item">
+  <template id="item-template">
     <tr>
       <td data-name="account"></td>
       <td><button class="pure-button">Info</button></td>
@@ -55,10 +56,10 @@
   </template>
 
   <script>
-    var search = document.getElementById('search-input')
-    var list = document.getElementById('list')
+    var $search = document.getElementById('search')
+    var $list = document.getElementById('list')
 
-    var list_items = []
+    var list = []
 
     var sample_data = [
       { account: 'E' },
@@ -68,49 +69,52 @@
       { account: 'B' },
     ]
 
-    var tbody = document.createElement('tbody')
-    var _item = document.getElementById('list-item')
-    var _account = _item.content.querySelector('[data-name=account]')
+    var $tbody = document.createElement('tbody')
+    var $item_template = document.getElementById('item-template')
+    var key = 'account'
+    var $key_template = $item_template.content.querySelector(`[data-name=${key}]`)
 
     sample_data.forEach(item => createItem(item))
     sortList()
 
     function createItem(item) {
-      var new_row
+      var $new_item
 
-      list_items.push(item)
-      _account.textContent = item.account
-      new_row = document.importNode(_item.content, true)
+      list.push(item)
+      $key_template.textContent = item[key]
+      $new_item = document.importNode($item_template.content, true)
 
-      tbody.insertBefore(new_row, tbody.firstElementChild)
-
-      item.element = tbody.firstElementChild
-      item.style = item.element.style
+      $tbody.insertBefore($new_item, $tbody.firstElementChild)
+      /*
+        Note this trickery: $new_item and $tbody.firstElementChild are NOT the same element. $new_item is a document fragment--when it gets inserted into the DOM all of it's child elements are what is actually inserted, so $new_item is now empty. I have to get the new DOM reference to the actual inserted child element with .firstElementChild
+      */
+      item.$ = $tbody.firstElementChild
+      item.style = item.$.style
     }
 
     function sortList() { // Sorts z -> a
-      list_items.sort((a, b) => {
-        var comp = b.account.localeCompare(a.account)
+      list.sort((a, b) => {
+        var comp = b[key].localeCompare(a[key])
 
-        if (comp > 0) tbody.insertBefore(a.element, b.element)
+        if (comp > 0) $tbody.insertBefore(a.$, b.$)
 
         return comp
       })
     }
 
-    list.appendChild(tbody)
+    $list.appendChild($tbody)
 
-    search.addEventListener('input', (e) => {
+    $search.addEventListener('input', (e) => {
       e.stopPropagation()
       var val = e.target.value.toLocaleLowerCase()
 
       if (!val) {
-        list_items.forEach(item => item.style.display = 'inherit')
+        list.forEach(item => item.style.display = 'inherit')
         return
       }
 
-      list_items.forEach(item => {
-        if (~item.account.toLocaleLowerCase().indexOf(val)) {
+      list.forEach(item => {
+        if (~item[key].toLocaleLowerCase().indexOf(val)) {
           item.style.display = 'inherit'
         } else {
           item.style.display = 'none'
